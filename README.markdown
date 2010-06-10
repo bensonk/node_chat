@@ -5,9 +5,9 @@ changing your nickname. As it stands, it's probably suitable for a small group
 of people who work in the same office to use as a constant informal chat room 
 for the office.  
 
-To run it, you will need to have node.js installed 
-(see ry's [node.js](http://github.com/ry/node) repository).  Once you have
-node.js installed, you can fork or clone this repo and run the server like
-this:
+To run it, you will need to have node.js installed (see
+[ry](http://github.com/ry)'s [node.js](http://github.com/ry/node) repository).
+Once you have node.js installed, you can fork or clone this repo and run the
+server like this:
 
 `$ /usr/local/bin/node server.js`
