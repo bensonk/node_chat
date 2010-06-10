@@ -145,15 +145,15 @@ function userPart(nick, timestamp) {
 // utility functions
 
 util = {
-  urlRE: /https?:\/\/([-\w\.]+)+(:\d+)?(\/([^\s]*(\?\S+)?)?)?/g, 
+  urlRE: /https?:\/\/([-\w\.]+)+(:\d+)?(\/([^\s]*(\?\S+)?)?)?/g,
 
-  //  html sanitizer 
+  //  html sanitizer
   toStaticHTML: function(inputHtml) {
     inputHtml = inputHtml.toString();
     return inputHtml.replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;");
-  }, 
+  },
 
   //pads n with zeros on the left,
   //digits is minimum length of output
@@ -161,7 +161,7 @@ util = {
   //zeroPad(2, 500); returns "500"
   zeroPad: function (digits, n) {
     n = n.toString();
-    while (n.length < digits) 
+    while (n.length < digits)
       n = '0' + n;
     return n;
   },
@@ -431,9 +431,62 @@ function who () {
   }, "json");
 }
 
+// A list of commands that can be run by prefacing them with a
+// slash.  Some of these call server-side code, others don't.
 var commands = {
-  "who": function() { who(); },
-  "alert": function(args) { alert(args) }
+  "who": who,
+  "alert": function(args) { alert(args.join(" ")) },
+  "help": function(args) {
+    addMessage("help:",
+               "All commands start with '/'.  Try typing /who " +
+               "for an example.  See /commands for a list of " +
+               "all commands.",
+               new Date(),
+               "notice")
+  },
+  "commands": function(args) {
+    var cmds = []
+    for(var cmd in commands) cmds.push(cmd);
+    addMessage("commands:",
+               cmds.sort().join(", "),
+               new Date(),
+               "notice");
+  },
+  "dice": function(args) {
+    var sides = 6; // size defaults to 6
+    if(args.length >= 1) sides = args[0];
+    jQuery.get("/dice", {id: CONFIG.id, size: sides});
+  },
+  "choice": function(options) {
+    if(options.length <= 1) {
+      addMessage("choice:",
+                 "usage: /choice <option1> <option2> <option3>",
+                 new Date(),
+                 "notice");
+      return;
+    }
+    jQuery.get("/choice", {id: CONFIG.id, choices: options});
+  },
+  "kick": function(args) {
+    if(args.length < 1) {
+      addMessage("kick:",
+                 "usage: /kick <who to kick>",
+                 new Date(),
+                 "notice");
+      return;
+    }
+    jQuery.get("/kick", {id: CONFIG.id, who: args.join(" ")});
+  },
+  "nick": function(args) {
+    if(args.length != 1) {
+      addMessage("nick:",
+                 "usage: /nick <name>",
+                 new Date(),
+                 "notice");
+      return;
+    }
+    jQuery.get("/nick", {id: CONFIG.id, nick: args[0]});
+  }
 }
 
 function handleCommand(txt) {

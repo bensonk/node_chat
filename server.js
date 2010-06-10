@@ -88,8 +88,8 @@ function createSession (nick) {
     if (session && session.nick === nick) return null;
   }
 
-  var session = { 
-    nick: nick, 
+  var session = {
+    nick: nick,
     id: Math.floor(Math.random()*99999999999).toString(),
     timestamp: new Date(),
 
@@ -127,6 +127,73 @@ fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
 
+function randint(max) {
+  return Math.floor(Math.random() * max) + 1
+}
+
+fu.get("/choice", function (req, res) {
+  var r = qs.parse(url.parse(req.url).query),
+      session = sessions[r.id];
+
+  if (!session || !r.choices) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  var value = r.choices[ randint(r.choices.length) - 1 ]; // -1 for the zero-based indexing
+  session.poke();
+  channel.appendMessage("[choice]",
+                        "msg",
+                        session.nick + " requests a random choice between " +
+                        r.choices.slice(0, -1).join(", ") + ", and " + r.choices.slice(-1)[0] + ": " + value);
+  res.simpleJSON(200, { result: "Random choice selected: " + value });
+});
+
+fu.get("/kick", function(req, res) {
+  var r = qs.parse(url.parse(req.url).query),
+      session = sessions[r.id],
+      power = r.power || 10;
+  if(!session || !r.who) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+  session.poke();
+  channel.appendMessage("[kick]", "msg",
+                        session.nick + " kicks " + r.who +
+                        " with a power of " + randint(power) + ".");
+  res.simpleJSON(200, { result: "You kicked " + r.who });
+});
+
+fu.get("/dice", function (req, res) {
+  var r = qs.parse(url.parse(req.url).query);
+  var session = sessions[r.id],
+      value = randint(r.size);
+
+  if (!session || !r.size) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  session.poke();
+  channel.appendMessage("[dice]", "msg", session.nick + " rolls a " + r.size + " sided die, and gets a " + value);
+  res.simpleJSON(200, { result: "Dice roll returned " + value });
+});
+
+fu.get("/nick", function (req, res) {
+  var r = qs.parse(url.parse(req.url).query),
+      session = sessions[r.id],
+      oldnick = session.nick;
+
+  if (!session || !r.nick) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  session.nick = r.nick;
+  session.poke();
+  channel.appendMessage("[nick]", "msg", oldnick + " is now known as " + session.nick);
+  res.simpleJSON(200, { result: "You are now known as " + session.nick });
+});
 
 fu.get("/who", function (req, res) {
   var nicks = [];
