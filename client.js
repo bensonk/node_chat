@@ -258,7 +258,7 @@ var transmission_errors = 0;
 var first_poll = true;
 
 
-//process updates if we have any, request updates from the server,
+// process updates if we have any, request updates from the server,
 // and call again with response. the last part is like recursion except the call
 // is being made from the response handler, and not at some point during the
 // function's execution.
@@ -431,13 +431,35 @@ function who () {
   }, "json");
 }
 
+var commands = {
+  "who": function() { who(); },
+  "alert": function(args) { alert(args) }
+}
+
+function handleCommand(txt) {
+  if(txt[0] == "/") {
+    var parts = txt.slice(1).split(" ");
+    var cmd = parts[0], args = parts.slice(1);
+    if(commands[cmd]) {
+      commands[cmd](args)
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+}
+
 $(document).ready(function() {
 
   //submit new messages when the user hits enter if the message isnt blank
   $("#entry").keypress(function (e) {
     if (e.keyCode != 13 /* Return */) return;
     var msg = $("#entry").attr("value").replace("\n", "");
-    if (!util.isBlank(msg)) send(msg);
+    if (!util.isBlank(msg)) {
+      if(!handleCommand(msg))
+        send(msg);
+    }
     $("#entry").attr("value", ""); // clear the entry field.
   });
 
