@@ -431,6 +431,13 @@ function who () {
   }, "json");
 }
 
+function doExit() {
+  jQuery.get("/part", {id: CONFIG.id}, function(data, status) {
+    if(status == "success")
+      location.reload(true);
+  });
+}
+
 // A list of commands that can be run by prefacing them with a
 // slash.  Some of these call server-side code, others don't.
 var commands = {
@@ -486,7 +493,10 @@ var commands = {
       return;
     }
     jQuery.get("/nick", {id: CONFIG.id, nick: args[0]});
-  }
+  },
+  "quit": doExit,
+  "exit": doExit,
+  "part": doExit,
 }
 
 function handleCommand(txt) {
