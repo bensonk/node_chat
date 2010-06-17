@@ -79,15 +79,18 @@ var channel = new function () {
 
 var sessions = {};
 
-function createSession (nick) {
-  if (nick.length > 50) return null;
-  if (/[^\w_\-^!]/.exec(nick)) return null;
-
+function checkNick(nick) {
+  if (nick.length > 50) return false;
+  if (/[^\w_\-^!'`~&*\[\]]/.exec(nick)) return false;
   for (var i in sessions) {
     var session = sessions[i];
-    if (session && session.nick === nick) return null;
+    if (session && session.nick === nick) return false;
   }
+  return true;
+}
 
+function createSession (nick) {
+  if(!(checkNick(nick))) return null;
   var session = {
     nick: nick,
     id: Math.floor(Math.random()*99999999999).toString(),
@@ -186,6 +189,11 @@ fu.get("/nick", function (req, res) {
 
   if (!session || !r.nick) {
     res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  if(!checkNick(r.nick)){
+    res.simpleJSON(400, { error: "Bad nick" });
     return;
   }
 
