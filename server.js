@@ -81,7 +81,7 @@ var sessions = {};
 
 function checkNick(nick) {
   if (nick.length > 50) return false;
-  if (/[^\w_\-^!'`~&*\[\]]/.exec(nick)) return false;
+  if (/[^\w_\-^!'`~&*\[\]\(\)]/.exec(nick)) return false;
   for (var i in sessions) {
     var session = sessions[i];
     if (session && session.nick === nick) return false;
